@@ -81,23 +81,4 @@ Untuk menemukan node terakhir (saat melakukan `insert` atau menghapus root pada 
 - Bit berikutnya `0` berarti belok **Kiri**.
 - Melalui penelusuran pointer `root -> right -> left`, kita langsung menemukan node parent yang tepat untuk menyematkan node baru tersebut tanpa melakukan pencarian linear!
 
----
 
-## 🧑‍🏫 Kisi-kisi Tanya Jawab Ujian Lisan Dosen
-
-Gunakan poin-poin berikut untuk mempermudah menjawab pertanyaan saat sesi wawancara dengan dosen pengampu:
-
-### 1. "Mengapa menggunakan Min-Heap untuk Algoritma Dijkstra?"
-> **Jawaban:** Min-Heap bertindak sebagai *Priority Queue*. Pada algoritma Dijkstra, kita harus selalu mengekstrak lokasi dengan jarak terkecil berikutnya. Jika menggunakan pencarian linear biasa, waktunya adalah $O(V)$. Dengan Min-Heap, mengambil nilai terkecil (di root) adalah $O(1)$ dan penataan ulangnya adalah $O(\log V)$. Ini mempercepat kompleksitas waktu total Dijkstra dari $O(V^2)$ menjadi $O((V+E) \log V)$, sangat penting untuk optimasi rute kurir berskala besar.
-
-### 2. "Bagaimana Anda mematuhi larangan penggunaan Array pada Min-Heap?"
-> **Jawaban:** Kami mengimplementasikannya sebagai pohon biner fisik dengan pointer `left`, `right`, dan `parent`. Kami tidak menyimpan elemen dalam array flat. Untuk menentukan letak penyisipan node baru (level-order), kami menggunakan metode representasi biner dari indeks ukuran heap. Ini memungkinkan kami menelusuri pohon dari root ke daun yang kosong dalam waktu $O(\log N)$ hanya dengan menggunakan pointer.
-
-### 3. "Bagaimana proses Up-Heapify dan Down-Heapify dilakukan pada Heap Tree Pointer Anda?"
-> **Jawaban:** 
-> - **Up-Heapify:** Saat node baru dimasukkan di bagian bawah, kami membandingkan jaraknya dengan induknya via pointer `parent`. Jika jaraknya lebih kecil, kita menukar data (`vertex` dan `dist`) antar node tersebut, lalu bergerak naik ke parent berikutnya secara rekursif/iteratif hingga kondisi heap terpenuhi.
-> - **Down-Heapify:** Setelah menukar data root dengan node terakhir (saat Extract-Min), kami membandingkan root dengan anak kiri dan anak kanannya. Kita menukar data dengan anak yang memiliki jarak terkecil, lalu melanjutkan proses ini ke bawah pohon sampai posisi node tersebut benar.
-> *Catatan: Struktur pohon biner tetap diam di memori; yang ditukar hanyalah muatan data (pointer Vertex & Jarak) di dalam node, yang membuat operasi ini sangat cepat dan aman.*
-
-### 4. "Bagaimana visualisasi ini membantu sistem Anda?"
-> **Jawaban:** Program kami memiliki web interface yang dapat menyajikan visualisasi langkah-demi-langkah (Play/Pause/Next). Di setiap langkah, frontend merender dua canvas secara real-time: peta lokasi (Graph) dan struktur pohon biner Min-Heap. Ini menunjukkan dengan tepat saat node diekstrak dari heap root, relaksasi jarak jalan tetangga, serta proses naiknya node baru di heap tree (`Up-Heapify` / `Down-Heapify`).
