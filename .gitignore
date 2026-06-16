@@ -2,6 +2,6 @@ __pycache__/
 *.pyc
 .vscode/
 .idea/
-.vs/
-.gemini/
 *.log
+materi_ujian_lisan.md
+
