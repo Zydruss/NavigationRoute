@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Navigasi Kurir Tercepat - Optimasi Rute Dijkstra & Min-Heap</title>
+    <meta name="description" content="Aplikasi visualisasi rute terpendek kurir logistik menggunakan algoritma Dijkstra dan struktur data Min-Heap berbasis pointer dinamis (tree) untuk tugas Struktur Data.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons for premium UI look -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-icon">
+                    <i data-lucide="navigation"></i>
+                </div>
+                <div class="brand-text">
+                    <h1>FastDelivery</h1>
+                    <span>Optimasi Rute Kurir</span>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <button class="nav-item active" id="btn-tab-sim" onclick="switchTab('tab-simulation')">
+                    <i data-lucide="play-circle"></i>
+                    <span>Simulasi Rute</span>
+                </button>
+                <button class="nav-item" id="btn-tab-edit" onclick="switchTab('tab-editor')">
+                    <i data-lucide="map"></i>
+                    <span>Editor Peta</span>
+                </button>
+            </nav>
+
+            <div class="team-footer">
+                <div class="team-header">
+                    <i data-lucide="users"></i>
+                    <span>Kelompok 8 - Kelas C</span>
+                </div>
+                <div class="team-members">
+                    <div>Felix Jericho M.</div>
+                    <div>Robby Ibrahimovic W.</div>
+                    <div>Dinar Atha D. N.</div>
+                    <div>Galih Andra D.</div>
+                    <div>Asep Fauzi</div>
+                </div>
+                <div class="univ">Universitas Jember</div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- HEADER -->
+            <header class="main-header">
+                <div class="header-title">
+                    <h2 id="current-tab-title">Visualisasi Navigasi Kurir</h2>
+                    <p id="current-tab-desc">Penentuan Rute Tercepat Menggunakan Dijkstra & Min-Heap Berbasis Pointer Dinamis</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-secondary" id="btn-reset-global" onclick="resetGraphToDefault()">
+                        <i data-lucide="rotate-ccw"></i>
+                        <span>Reset Default Jember</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- TAB 1: SIMULATION -->
+            <section id="tab-simulation" class="tab-content active">
+                <div class="simulation-grid">
+                    
+                    <!-- Left Control Panel -->
+                    <div class="control-panel">
+                        <div class="panel-section">
+                            <h3><i data-lucide="map-pin"></i> Pengaturan Rute</h3>
+                            <div class="form-group">
+                                <label for="select-start">Lokasi Awal Kurir (Start)</label>
+                                <select id="select-start" class="form-control">
+                                    <!-- Populated dynamically -->
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="select-dest">Lokasi Tujuan Paket (Destination)</label>
+                                <select id="select-dest" class="form-control">
+                                    <!-- Populated dynamically -->
+                                </select>
+                            </div>
+                            
+                            <div class="button-group">
+                                <button class="btn btn-primary btn-full" id="btn-find-route" onclick="startDijkstraSolver()">
+                                    <i data-lucide="search"></i>
+                                    <span>Cari Rute Tercepat</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Visualizer Controller -->
+                        <div class="panel-section disabled" id="visualizer-controls">
+                            <h3><i data-lucide="sliders"></i> Kontrol Simulasi</h3>
+                            
+                            <div class="control-buttons">
+                                <button class="btn-icon" id="btn-prev-step" onclick="prevStep()" title="Langkah Sebelumnya" disabled>
+                                    <i data-lucide="skip-back"></i>
+                                </button>
+                                <button class="btn-icon btn-play" id="btn-play-pause" onclick="togglePlay()" title="Putar Otomatis" disabled>
+                                    <i data-lucide="play"></i>
+                                </button>
+                                <button class="btn-icon" id="btn-next-step" onclick="nextStep()" title="Langkah Berikutnya" disabled>
+                                    <i data-lucide="skip-forward"></i>
+                                </button>
+                                <button class="btn-icon" id="btn-stop" onclick="stopSimulation()" title="Hentikan Simulasi" disabled>
+                                    <i data-lucide="square"></i>
+                                </button>
+                            </div>
+
+                            <div class="speed-slider-group">
+                                <label for="simulation-speed">Kecepatan Animasi</label>
+                                <input type="range" id="simulation-speed" min="200" max="3000" step="200" value="1000" onchange="updateSpeed(this.value)">
+                                <div class="speed-labels">
+                                    <span>Cepat</span>
+                                    <span>Sedang</span>
+                                    <span>Lambat</span>
+                                </div>
+                            </div>
+
+                            <div class="progress-bar-container">
+                                <div class="progress-bar-label">
+                                    <span>Langkah Ke:</span>
+                                    <span id="step-counter-text">0 / 0</span>
+                                </div>
+                                <div class="progress-bar-track">
+                                    <div class="progress-bar-fill" id="step-progress-fill" style="width: 0%;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step Description Log -->
+                        <div class="panel-section log-section">
+                            <h3><i data-lucide="terminal"></i> Log Jalannya Algoritma</h3>
+                            <div class="log-container" id="simulation-logs">
+                                <div class="log-entry system-entry">Silakan pilih lokasi awal dan tujuan, kemudian klik "Cari Rute Tercepat" untuk memulai simulasi.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Visualization Panel -->
+                    <div class="visualization-panel">
+                        <!-- Upper Area: Graph Visualizer -->
+                        <div class="vis-box flex-2">
+                            <div class="vis-box-header">
+                                <h3><i data-lucide="map"></i> Visualisasi Peta Jaringan Logistik (Graph)</h3>
+                                <span class="badge badge-info">Double Click di Canvas untuk Tambah Lokasi</span>
+                            </div>
+                            <div class="canvas-container">
+                                <canvas id="graph-canvas"></canvas>
+                                <div class="canvas-legend">
+                                    <div class="legend-item"><span class="dot dot-unvisited"></span> Belum Dikunjungi</div>
+                                    <div class="legend-item"><span class="dot dot-visited"></span> Dikunjungi (Visited)</div>
+                                    <div class="legend-item"><span class="dot dot-active"></span> Aktif/Diperiksa</div>
+                                    <div class="legend-item"><span class="dot dot-path"></span> Rute Terpendek</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Lower Area: Heap Visualizer -->
+                        <div class="vis-box flex-1">
+                            <div class="vis-box-header">
+                                <h3><i data-lucide="git-branch"></i> Struktur Data Min-Heap Prioritas (Pohon Biner Dinamis)</h3>
+                                <span class="badge badge-warning">Pointer-Based Binary Tree</span>
+                            </div>
+                            <div class="canvas-container">
+                                <canvas id="heap-canvas"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 2: EDITOR PETA -->
+            <section id="tab-editor" class="tab-content">
+                <div class="editor-grid">
+                    <!-- Column 1: Add Vertex & Edge Forms -->
+                    <div class="editor-forms">
+                        <!-- Add/Edit Vertex -->
+                        <div class="panel-section">
+                            <h3><i data-lucide="map-pin"></i> Tambah / Edit Lokasi (Vertex)</h3>
+                            <form id="form-add-vertex" onsubmit="handleFormAddVertex(event)">
+                                <div class="form-group">
+                                    <label for="vertex-name">Nama Lokasi</label>
+                                    <input type="text" id="vertex-name" class="form-control" placeholder="Contoh: Gudang B, Hub Sukowono" required>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group col">
+                                        <label for="vertex-x">Posisi X (Layar)</label>
+                                        <input type="number" id="vertex-x" class="form-control" min="50" max="750" value="400" required>
+                                    </div>
+                                    <div class="form-group col">
+                                        <label for="vertex-y">Posisi Y (Layar)</label>
+                                        <input type="number" id="vertex-y" class="form-control" min="50" max="550" value="300" required>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-full">
+                                    <i data-lucide="plus-circle"></i> Simpan Lokasi
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Add/Edit Edge -->
+                        <div class="panel-section">
+                            <h3><i data-lucide="git-commit"></i> Tambah / Hubungkan Rute (Edge Dua Arah)</h3>
+                            <form id="form-add-edge" onsubmit="handleFormAddEdge(event)">
+                                <div class="form-group">
+                                    <label for="edge-src">Lokasi Asal</label>
+                                    <select id="edge-src" class="form-control" required>
+                                        <!-- Populated dynamically -->
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="edge-dest">Lokasi Tujuan</label>
+                                    <select id="edge-dest" class="form-control" required>
+                                        <!-- Populated dynamically -->
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="edge-weight">Jarak Rute (Bobot dalam KM)</label>
+                                    <input type="number" id="edge-weight" class="form-control" min="0.1" step="0.1" value="5.0" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-full">
+                                    <i data-lucide="link"></i> Simpan / Hubungkan Rute
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Column 2: Graph Data List (Vertices & Edges Table) -->
+                    <div class="editor-tables">
+                        <!-- Table of Vertices -->
+                        <div class="panel-section">
+                            <h3><i data-lucide="database"></i> Daftar Lokasi Terdaftar</h3>
+                            <div class="table-container">
+                                <table class="data-table" id="table-vertices">
+                                    <thead>
+                                        <tr>
+                                            <th>Nama Lokasi</th>
+                                            <th>Koordinat (X, Y)</th>
+                                            <th>Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Populated dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Table of Edges -->
+                        <div class="panel-section">
+                            <h3><i data-lucide="route"></i> Daftar Jalur / Rute Terhubung</h3>
+                            <div class="table-container">
+                                <table class="data-table" id="table-edges">
+                                    <thead>
+                                        <tr>
+                                            <th>Lokasi Asal</th>
+                                            <th>Lokasi Tujuan</th>
+                                            <th>Jarak (KM)</th>
+                                            <th>Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Populated dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Toast Notification for beautiful visual feedback -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- App Scripts -->
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
