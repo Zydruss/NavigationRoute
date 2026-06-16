@@ -47,8 +47,10 @@ document.addEventListener('DOMContentLoaded', () => {
 function resizeCanvases() {
     // Langkah-langkah menyesuaikan ukuran:
     if (graphCanvas && graphCanvas.parentElement) {
+        // Lebar canvas tetap responsif mengikuti layar
         graphCanvas.width = graphCanvas.parentElement.clientWidth;
-        graphCanvas.height = Math.max(300, graphCanvas.parentElement.clientHeight);
+        // Tinggi canvas diatur tetap ke 550px agar lokasi di koordinat bawah (seperti DP Ajung) tidak terpotong
+        graphCanvas.height = 550;
     }
     if (heapCanvas && heapCanvas.parentElement) {
         heapCanvas.width = heapCanvas.parentElement.clientWidth;

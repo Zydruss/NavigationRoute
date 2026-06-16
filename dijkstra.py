@@ -429,14 +429,14 @@ def dijkstra_visualized(graph, start_name, dest_name):
                 add_step(
                     desc_success, 
                     highlight_v=v_vertex.name, 
-                    highlight_edge=[u_vertex.name, v_vertex.name]
+                    highlight_e=[u_vertex.name, v_vertex.name]
                 )
             else:
                 desc_fail = desc + f" -> Jarak alternatif tidak lebih kecil dari jarak saat ini ({v_vertex.dist} KM). Lewati."
                 add_step(
                     desc_fail, 
                     highlight_v=v_vertex.name, 
-                    highlight_edge=[u_vertex.name, v_vertex.name]
+                    highlight_e=[u_vertex.name, v_vertex.name]
                 )
                 
             curr_e = curr_e.next_edge  # Pindah ke edge berikutnya menggunakan pointer next_edge
